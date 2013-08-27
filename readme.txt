@@ -39,6 +39,11 @@ This plugin simply reports on the redirection logs with day by day reporting.
 You should be able to use any date format.  The PHP is going to reformat it to the
 way that MySQL wants to see it.
 
+= Where do I find the reports? =
+
+The "Redirection Reporting" link can be found under the tools menu, probably
+right near the "Redirection" link.
+
 == Screenshots ==
 
 1. A sample report
