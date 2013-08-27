@@ -1,14 +1,14 @@
 === Redirection Reporting ===
 Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
-Tags: email
+Tags: reporting, redirection
 Requires at least: 3.0.1
 Tested up to: 3.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Emails other people when you publish a blog post.
+Allows for daily reporting for redirected requests.
 
 == Description ==
 
@@ -51,6 +51,8 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 1.1 =
+* Fixed the FAQ and readme file.
 
 = 1.0 =
 * Created the report
