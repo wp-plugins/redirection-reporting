@@ -1,4 +1,4 @@
-=== Email CoAuthor On Post ===
+=== Redirection Reporting ===
 Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
 Tags: email
