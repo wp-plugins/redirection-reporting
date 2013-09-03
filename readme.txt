@@ -51,6 +51,9 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 1.6 =
+* Added the ability to report on all configured URLs in a single report for a date range.
+
 = 1.1 =
 * Fixed the FAQ and readme file.
 
