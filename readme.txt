@@ -3,7 +3,7 @@ Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
-Tested up to: 3.6
+Tested up to: 3.6.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -50,6 +50,11 @@ right near the "Redirection" link.
 
 
 == Changelog ==
+
+= 1.7 =
+* Added in reporting specific for RegEx enabled redirection URLs.  This report shows 
+all available regex values and allows reports to be run for those specific values.
+This report only works when redirection URLs are configured with the RegEx flag.
 
 = 1.6 =
 * Added the ability to report on all configured URLs in a single report for a date range.
