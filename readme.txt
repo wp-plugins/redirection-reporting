@@ -51,6 +51,11 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 1.8 =
+* Added in parent child style reporting for RegEx enabled URLs.  This allows you to report
+on just the parent URL, but see the data for all the child values.
+* Cleaned up the code, removed lots of duplicate code to make code maintenance easier.
+
 = 1.7 =
 * Added in reporting specific for RegEx enabled redirection URLs.  This report shows 
 all available regex values and allows reports to be run for those specific values.

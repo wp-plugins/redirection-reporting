@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 1.7
+Version: 1.8
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -28,13 +28,43 @@ class redirector_reporting_class {
 	}
 
 	function show_page() {
-		echo "<form name='report_type' method='post'><input type='submit' name='Normal' value='normal' name='ReportType'>  <input type='submit' name='Normal' value='RegEx'></form><br>";
+		echo "<form name='report_type' method='post'><input type='submit' name='Normal' value='normal' name='ReportType'>  <input type='submit' name='Normal' value='RegEx'>  <input type='submit' name='Normal' value='RegEx Parent Child'></form><br>";
 
-		if ($_POST['Normal'] != 'RegEx') {
-			$this->show_page_url();
-		} else {
+		if ($_POST['Normal'] == 'RegEx') {
 			$this->show_page_regex();
+		} elseif ($_POST['Normal'] == 'RegEx Parent Child') {
+			$this->show_page_regex_parent();
 		}
+		else {
+			$this->show_page_url();
+		}
+	}
+
+	function show_page_regex_parent() {
+		global $wpdb;
+		$sql = "select distinct b.url, id from `{$wpdb->prefix}redirection_items` b where b.regex = 1 order by b.url";
+		echo "<form name='selection_form' method='post'>";
+		echo "<input type='hidden' name='Normal' value='{$_POST['Normal']}' />";
+		echo "<table border='0'><tr><td>Select URL:</td><td><select name='url'>";
+		echo "<option value='--all--'>All URLs</option>";
+
+		$rows = $wpdb->get_results($sql);
+
+		foreach ($rows as $row) {
+			echo "<option value='";
+			echo $row->id;
+			if ($_POST['url'] == $row->id) {
+				echo "' SELECTED>";
+			} else {
+				echo "'>";
+			}
+			//echo "<option>";
+			echo $row->url;
+			echo "</option>";
+		}
+		echo "</select></td></tr>";
+		$this->end_of_form();
+
 	}
 
 	function show_page_regex() {
@@ -104,10 +134,13 @@ class redirector_reporting_class {
 			}
 
 			if ($error==false) {
-				if ($_POST['Normal'] != 'RegEx') {
-					$this->draw_report_url($_POST['url'], $_POST['startdate'], $_POST['enddate']);
-				} else {
+
+				if ($_POST['Normal'] == 'RegEx') {
 					$this->draw_report_regex($_POST['url'], $_POST['startdate'], $_POST['enddate']);
+				} elseif ($_POST['Normal'] == 'RegEx Parent Child') {
+					$this->draw_report_regex_parent($_POST['url'], $_POST['startdate'], $_POST['enddate']);
+				} else {
+					$this->draw_report_url($_POST['url'], $_POST['startdate'], $_POST['enddate']);
 				}
 
 
@@ -115,10 +148,35 @@ class redirector_reporting_class {
 		}
 	}
 
+	function draw_report_regex_parent ($url, $startdate, $enddate) {
+	global $wpdb;
+
+		$url_name = $this->return_url_from_id($url);
+		echo "Report for: $url_name";
+		
+		$startdate = date("Y-m-d", strtotime($startdate));
+		$enddate = date("Y-m-d", strtotime($enddate));
+
+		if ($url == "--all--") {
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) with rollup) d";
+
+			$columns = array("URL", "Date", "Count");
+		} else {
+			$sql = "select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) with rollup";
+			$columns = array("URL", "Date", "Count");
+		}
+
+		$rows = $wpdb->get_results("$sql");
+		//echo "<BR>$sql<BR>";
+		
+		$this->draw_report_generic ($rows, $columns);
+
+	}
+
 	function draw_report_regex ($url, $startdate, $enddate) {
 		global $wpdb;
-		if ($id == "--all--") {
-			echo "Report for all URLs";
+		if ($url == "--all--") {
+			echo "Report for: All URLs";
 		} else {
 			echo "Report for: $url";
 		}
@@ -127,97 +185,89 @@ class redirector_reporting_class {
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($url == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) with rollup) d";
-		} else {
-			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs JOIN    (SELECT @curRow := 0) r WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+			$sql = "select url, dt, ct from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) with rollup) d";
 
+			$columns = array("URL", "Date", "Count");
+		} else {
+			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs  WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+			$columns = array("Date", "Count");
 		}
 
 		$rows = $wpdb->get_results("$sql");
 		//echo "<BR>$sql";
-		echo "<BR>";
-		echo "<table border='1' cellpadding='1' cellspacing='0'><tr>";
-		if ($url == "--all--") {
-			echo "<td align='center'><b>URL</b></td><td align='center'><b>Date</b></td><td align='center'><b>Hit Count</b></td></tr>";
-		} else {
-			echo "<td align='center'><b>Date</b></td><td align='center'><b>Hit Count</b></td></tr>";
-		}
-		foreach ($rows as $row) {
-			echo "<tr";
-			if ($row->url == "") {
-				echo " bgcolor='green'";
-			} else {
-				if ($row->dt == "") {
-					echo " bgcolor='green'";
-				} else {
-					if ($row->row_number==0) {
-						echo " bgcolor='gray'";
-					}
-				}
-			}
-			
-			if ($url == "--all--") {
-				echo "><td>{$row->url}</td><td>{$row->dt}</td><td>{$row->ct}</td></tr>";
-			} else {
-				echo "><td>{$row->dt}</td><td>{$row->ct}</td></tr>";
-			}
-		}
-		echo "</table>";
+		
+		$this->draw_report_generic ($rows, $columns);
 	}
 
 	function draw_report_url ($id, $startdate, $enddate) {
 		global $wpdb;
-		if ($id == "--all--") {
-			echo "Report for all URLs";
-		} else {
-			$rows = $wpdb->get_results("select url, id from `{$wpdb->prefix}redirection_items` where id = $id");
-			foreach ($rows as $row) {
-				echo "Report for: $row->url";
-			}
-		}
-		
 
+		$url_name = $this->return_url_from_id($id);
+		echo "Report for: $url_name";
+		
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($id == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs JOIN (SELECT @curRow := 0) r WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) with rollup) a";
-		} else {
-			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs JOIN    (SELECT @curRow := 0) r WHERE redirection_id = $id AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) with rollup) a";
 
+			$columns = array ("URL", "Date", "Hit Count");
+
+		} else {
+			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs JOIN    (SELECT @curRow := 0) r WHERE redirection_id = $id AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+
+			$columns = array ("Date", "Hit Count");
 		}
 
 		$rows = $wpdb->get_results("$sql");
 		//echo $sql;
+		
+		$this->draw_report_generic ($rows, $columns);
+	}
+
+	function draw_report_generic ($rows, $columns) {
+		global $wpdb;
 		echo "<BR>";
 		echo "<table border='1' cellpadding='1' cellspacing='0'><tr>";
-		if ($id == "--all--") {
-			echo "<td align='center'><b>URL</b></td><td align='center'><b>Date</b></td><td align='center'><b>Hit Count</b></td></tr>";
-		} else {
-			echo "<td align='center'><b>Date</b></td><td align='center'><b>Hit Count</b></td></tr>";
+		$column_count = count($columns);
+		foreach ($columns as $column) {
+			echo "<TD align='center'><B>$column</B></TD>";
 		}
+		echo "</TR>";
+
 		foreach ($rows as $row) {
-			echo "<tr";
-			if ($row->url == "") {
-				echo " bgcolor='green'";
+			if ($row_id = 0) {
+				$row_id = 1;
 			} else {
-				if ($row->dt == "") {
-					echo " bgcolor='green'";
-				} else {
-					if ($row->row_number==0) {
-						echo " bgcolor='gray'";
-					}
+				$row_id =0;
+			}
+			echo "<TR";
+				if ($row_id = 0) {
+					echo " grey";
 				}
+			echo ">";
+			$i = 0;
+			foreach ($row as $thing) {
+				if ($i < $column_count) {
+					echo "<td>$thing</td>";
+				}
+				$i+=1;
 			}
-			
-			if ($id == "--all--") {
-				echo "><td>{$row->url}</td><td>{$row->dt}</td><td>{$row->ct}</td></tr>";
-			} else {
-				echo "><td>{$row->dt}</td><td>{$row->ct}</td></tr>";
-			}
+			echo "<TR>";
 		}
+
 		echo "</table>";
 	}
 
+	function return_url_from_id ($id) {
+		global $wpdb;
+
+		if ($id == "--all--") {
+			return ("All URLs");
+		} else {
+			$rows = $wpdb->get_results("select url, id from `{$wpdb->prefix}redirection_items` where id = $id");
+			return ($rows[0]->url);
+		}
+	}
 
 } //End Class
 
