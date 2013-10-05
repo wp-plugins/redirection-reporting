@@ -51,6 +51,12 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 1.9 =
+* Added links from RegEx parent child report to normal RegEx report.
+* Disabled report selection button when button isn't useful.
+* Code cleanup.
+* Fixed row by row colorization of report output
+
 = 1.8 =
 * Added in parent child style reporting for RegEx enabled URLs.  This allows you to report
 on just the parent URL, but see the data for all the child values.
