@@ -51,6 +51,9 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 1.9.1 =
+* Fixed a typo in the code which caused the plugin users site to be unavailable.
+
 = 1.9 =
 * Added links from RegEx parent child report to normal RegEx report.
 * Disabled report selection button when button isn't useful.
