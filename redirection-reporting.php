@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 1.9
+Version: 1.9.1
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -44,7 +44,7 @@ class redirector_reporting_class {
 			echo " disabled";
 		}
 		echo ">  <input type='submit' name='Normal' value='RegEx'";
-		if ($Normal=='RegEx') {a
+		if ($Normal=='RegEx') {
 			echo " disabled";
 		} 
 		echo ">  <input type='submit' name='Normal' value='RegEx Parent Child'";
