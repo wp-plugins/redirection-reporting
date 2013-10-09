@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 1.9.1
+Version: 2.0
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -14,20 +14,130 @@ class redirector_reporting_class {
 
 		// Default options
 		$options = array (
-			'donate' => ''
+			'donate' => '',
+			'default_report' => 'RegEx',
+			'default_dates' => ''
 		);
     
 		// Add options
-		add_option('redirector_reporting_options', $options);
+		add_option('redirection_reporting', $options);
 	 }
 
 	function tools_menu() {
 		$redirector_reporting_class = new redirector_reporting_class();
 
-		add_submenu_page('tools.php', __('Redirection Reporting', 'redirection_reporting'), __('Redirection Reporting', 'redirection_reporting'), 'manage_options', 'redirection_reporting', array($redirector_reporting_class, 'show_page'));
+		add_submenu_page('tools.php', __('Redirection Reporting', 'redirection_reporting'), __('Redirection Reporting', 'redirection_reporting'), 'manage_options', 'redirection_reporting', array($redirector_reporting_class, 'show_tools_page'));
 	}
 
-	function show_page() {
+	function settings_menu() {
+		$redirector_reporting_class = new redirector_reporting_class();
+
+		add_submenu_page('options-general.php', __('Redirection Reporting', 'redirection_reporting'), __('Redirection Reporting', 'redirection_reporting'), 'manage_options', 'redirection_reporting_settings', array($redirector_reporting_class, 'show_settings_page'));
+		
+	}
+
+	function show_settings_page() {
+		echo '<div class="wrap">';
+		echo '<H2>Redirection Reporting Settings</h2>';
+		echo '<form action="options.php" method="post">';
+		settings_fields('redirection_reporting');
+		do_settings_sections('redirection_reporting');
+		echo '<p class="submit"><input name="submit" type="submit" class="button-primary" value="Save Changes" /></form></div>';
+
+	}
+
+	function init_settings(){
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( __('You are not allowed to access this part of the site') );
+		}
+
+
+		register_setting( 'redirection_reporting', 'redirection_reporting', array(&$this,'settings_validate') );
+		add_settings_section('redirection_reporting_main', __( 'Settings', '' ), array(&$this, 'setting_section'), 'redirection_reporting');
+		add_settings_field('default_report', __( 'Default Report:', '' ), array(&$this, 'setting_default_report'), 'redirection_reporting', 'redirection_reporting_main');
+		add_settings_field('default_date', __('Default Date:',  ''), array(&$this, 'setting_default_date'), 'redirection_reporting', 'redirection_reporting_main');
+	}
+
+	function setting_section() {
+		echo "Please select the default Redirection Reporting settings";
+	}
+
+	function setting_default_report() {
+		$options = get_option('redirection_reporting');
+		echo '<select id="default_report" name="redirection_reporting[default_report]">';
+		echo '<option value="Normal"';
+		if ($options['default_report'] == 'Normal') {
+			echo " selected";
+		}
+		echo '>Page Report</option>';
+		echo '<option value="RegEx"';
+		if ($options['default_report'] == 'RegEx') {
+			echo " selected";
+		}		
+		echo '>RegEx Reporting</option>';	
+		echo '<option value="RegEx Parent Child"';
+		if ($options['default_report'] == 'RegEx Parent Child') {
+			echo " selected";
+		}		
+		echo '>RegEx Parent Child</option>';
+		echo '</select>';
+
+	}
+
+	function setting_default_date() {
+		$options = get_option('redirection_reporting');
+		echo '<select id="default_date" name="redirection_reporting[default_date]">';
+		echo '<option>None</option>';
+		echo '<option ';
+		if ($options['default_date'] == 'Today') { echo ' selected'; }
+		echo '>Today</option>';
+		echo '<option';
+		if ($options['default_date'] == 'Yesterday') { echo ' selected'; }
+		echo '>Yesterday</option>';
+		echo '<option';
+		if ($options['default_date'] == 'Two Days Ago') { echo ' selected'; }
+		echo '>Two Days Ago</option>';
+		echo '<option';
+		if ($options['default_date'] == 'This Month') { echo ' selected'; }
+		echo '>This Month</option>';
+		echo '</select>';
+		echo '    (Dates used will be based on server time. If your timezone is different from the servers the dates may be "funky".)';
+	}
+
+	function get_default_date(&$startdate, &$enddate) {
+		$options = get_option('redirection_reporting');
+		if ($options['default_date'] == 'None') {
+			return;
+		}
+		if ($options['default_date'] == 'Today') {
+			$startdate = mktime(0, 0, 0, date("m")  , date("d"), date("Y"));
+			$enddate = mktime(0, 0, 0, date("m")  , date("d")+1, date("Y"));
+		}
+		if ($options['default_date'] == 'Yesterday') {
+			$startdate = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+			$enddate = mktime(0, 0, 0, date("m")  , date("d"), date("Y"));
+		}
+		if ($options['default_date'] == 'Two Days Ago') {
+			$startdate = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+			$enddate = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+		}
+		if ($options['default_date'] == 'This Month') {
+			$startdate = mktime(0, 0, 0, date("m")  , 1, date("Y"));
+			$enddate = mktime(0, 0, 0, date("m")  , date("d")+1, date("Y"));
+		}
+		$startdate = date("Y-m-d", $startdate);
+		$enddate = date("Y-m-d", $enddate);
+	}
+
+	function settings_validate($input) {
+		return $input;
+	}
+
+	function show_tools_page() {
+
+		$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
 
 		if ($_POST['Normal'] <> '') {
 			$Normal = $_POST['Normal'];
@@ -65,6 +175,9 @@ class redirector_reporting_class {
 
 	function show_page_regex_parent() {
 
+		$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
+
 		if ($_POST['Normal'] <> '') {
 			$Normal = $_POST['Normal'];
 			$url = $_POST['url'];
@@ -100,6 +213,10 @@ class redirector_reporting_class {
 	}
 
 	function show_page_regex() {
+
+		$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
+
 		if ($_POST['Normal'] <> '') {
 			$Normal = $_POST['Normal'];
 			$url = $_POST['url'];
@@ -133,6 +250,11 @@ class redirector_reporting_class {
 	}
 
 	function show_page_url() {
+
+		$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
+
+
 		if ($_POST['Normal'] <> '') {
 			$Normal = $_POST['Normal'];
 			$url= $_POST['url'];
@@ -175,6 +297,10 @@ class redirector_reporting_class {
 			$url = $_GET['url'];
 			$startdate = $_GET['startdate'];
 			$enddate = $_GET['enddate'];
+		}
+
+		if ($startdate == '') {
+			$this->get_default_date($startdate, $enddate);
 		}
 
 		echo "<tr><td>Report Start Date:</td><td><input name='startdate' type='text' value='{$startdate}'></td></tr>";
@@ -346,9 +472,25 @@ class redirector_reporting_class {
 		}
 	}
 
+
+	// Add "Settings" link to the plugins page
+	function settings_menu_add_settings_link ($links, $file) {
+		if ( $file != plugin_basename( __FILE__ ))
+			return $links;
+
+		$settings_link = sprintf( '<a href="options-general.php?page=redirection_reporting_settings">%s</a>', __( 'Settings', '' ) );
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
+	}
+
 } //End Class
 
 $redirector_reporting_class = new redirector_reporting_class();
 
 register_activation_hook(__FILE__, array($redirector_reporting_class, 'activation'));
-add_action('admin_menu',  array($redirector_reporting_class, 'tools_menu'));
+add_action('admin_menu', array($redirector_reporting_class, 'tools_menu'));
+add_action('admin_menu', array($redirector_reporting_class, 'settings_menu'));
+add_action('admin_init', array($redirector_reporting_class, 'init_settings'), 1);
+add_filter('plugin_action_links', array($redirector_reporting_class, 'settings_menu_add_settings_link'),10,2);

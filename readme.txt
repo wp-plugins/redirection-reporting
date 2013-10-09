@@ -51,6 +51,12 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 2.0 =
+* Added settings screen.
+* Allows setting of default report to show.
+* Allows setting of default dates for reports to show.
+* Available dates are Today, Yesterday, Two Days Ago, This Month.
+
 = 1.9.1 =
 * Fixed a typo in the code which caused the plugin users site to be unavailable.
 
