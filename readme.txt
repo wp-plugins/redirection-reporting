@@ -51,6 +51,9 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 2.1 =
+* Adding the ability to hide rollup values when they are available.
+
 = 2.0 =
 * Added settings screen.
 * Allows setting of default report to show.

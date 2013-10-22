@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 2.0
+Version: 2.1
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -150,7 +150,7 @@ class redirector_reporting_class {
 		}
 
 		echo "<br><form name='report_type' method='post'><input type='submit' name='Normal' value='normal' name='ReportType'";
-		if ($Normal=='Normal') {
+		if ($Normal=='normal') {
 			echo " disabled";
 		}
 		echo ">  <input type='submit' name='Normal' value='RegEx'";
@@ -292,11 +292,13 @@ class redirector_reporting_class {
 			$url = $_POST['url'];
 			$startdate = $_POST['startdate'];
 			$enddate = $_POST['enddate'];
+			$hide_rollup = $_POST['hide_rollup'];
 		} elseif ($_GET['Normal'] <> '') {
 			$Normal = $_GET['Normal'];
 			$url = $_GET['url'];
 			$startdate = $_GET['startdate'];
 			$enddate = $_GET['enddate'];
+			$hide_rollup = $_GET['hide_rollup'];
 		}
 
 		if ($startdate == '') {
@@ -305,6 +307,11 @@ class redirector_reporting_class {
 
 		echo "<tr><td>Report Start Date:</td><td><input name='startdate' type='text' value='{$startdate}'></td></tr>";
 		echo "<tr><td>Report End Date:</td><td><input name='enddate' type='text' value='{$enddate}'></td></tr>";
+		echo "<tr><td colspan='2'><input type='checkbox' name='hide_rollup' value='true'";
+		if ($hide_rollup != '') {
+			echo " checked";
+		}
+		echo "> Hide Rollup Values (when possible)</td></tr>";
 		echo "<tr><td colspan='2'><input type='submit' name='submit' value='Run Report'></td></tr>";
 		echo "</table></form>";
 
@@ -343,11 +350,22 @@ class redirector_reporting_class {
 		$enddate = date("Y-m-d", strtotime($enddate));
 
 		if ($url == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) with rollup) d";
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
+
+			if ($_POST['hide_rollup'] == '') {
+				$sql = $sql." with rollup";
+			}
+
+			$sql = $sql.") d";
 
 			$columns = array("URL", "Date", "Count");
 		} else {
-			$sql = "select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) with rollup";
+			$sql = "select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created)";
+
+			if ($_POST['hide_rollup'] == '') {
+				$sql = $sql." with rollup";
+			}
+
 			$columns = array("URL", "Date", "Count");
 		}
 
@@ -370,11 +388,18 @@ class redirector_reporting_class {
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($url == "--all--") {
-			$sql = "select url, dt, ct from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) with rollup) d";
+			$sql = "select url, dt, ct from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
+
+			if ($_POST['hide_rollup'] == '') {
+				$sql = $sql." with rollup";
+			}
+
+			$sql = $sql.") d";
 
 			$columns = array("URL", "Date", "Count");
 		} else {
 			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs  WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+
 			$columns = array("Date", "Count");
 		}
 
@@ -393,12 +418,19 @@ class redirector_reporting_class {
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($id == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) with rollup) a";
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) ";
+
+			if ($_POST['hide_rollup'] == '') {
+				$sql = $sql." with rollup";
+			}
+
+			$sql = $sql.") a";
 
 			$columns = array ("URL", "Date", "Hit Count");
 
 		} else {
 			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs JOIN    (SELECT @curRow := 0) r WHERE redirection_id = $id AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+
 
 			$columns = array ("Date", "Hit Count");
 		}
