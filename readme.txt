@@ -3,7 +3,7 @@ Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
-Tested up to: 3.7
+Tested up to: 3.7.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -50,6 +50,11 @@ right near the "Redirection" link.
 
 
 == Changelog ==
+
+= 2.2 =
+* Added in a RegEx Summary report which allows you to show the total number of hits 
+for all the URLs that match a specific RegEx entry for a specific date rate.  This 
+is great for end of year reporting.
 
 = 2.1 =
 * Adding the ability to hide rollup values when they are available.

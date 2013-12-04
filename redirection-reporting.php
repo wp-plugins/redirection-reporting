@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 2.1
+Version: 2.2
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -26,13 +26,13 @@ class redirector_reporting_class {
 	function tools_menu() {
 		$redirector_reporting_class = new redirector_reporting_class();
 
-		add_submenu_page('tools.php', __('Redirection Reporting', 'redirection_reporting'), __('Redirection Reporting', 'redirection_reporting'), 'manage_options', 'redirection_reporting', array($redirector_reporting_class, 'show_tools_page'));
+		add_submenu_page('tools.php', __('Redirection Reporting', 'redirection.php.reporting'), __('Redirection Reporting', 'redirection.php.reporting'), 'manage_options', 'redirection.php.reporting', array($redirector_reporting_class, 'show_tools_page'));
 	}
 
 	function settings_menu() {
 		$redirector_reporting_class = new redirector_reporting_class();
 
-		add_submenu_page('options-general.php', __('Redirection Reporting', 'redirection_reporting'), __('Redirection Reporting', 'redirection_reporting'), 'manage_options', 'redirection_reporting_settings', array($redirector_reporting_class, 'show_settings_page'));
+		add_submenu_page('options-general.php', __('Redirection Reporting', 'redirection.php.reporting'), __('Redirection Reporting', 'redirection.php.reporting'), 'manage_options', 'redirection.php.reporting.settings', array($redirector_reporting_class, 'show_settings_page'));
 		
 	}
 
@@ -81,6 +81,11 @@ class redirector_reporting_class {
 			echo " selected";
 		}		
 		echo '>RegEx Parent Child</option>';
+		echo '<option value="RegEx Summary"';
+		if ($options['default_report'] == 'RegEx Summary') {
+			echo " selected";
+		}		
+		echo '>RegEx Summary</option>';
 		echo '</select>';
 
 	}
@@ -161,16 +166,83 @@ class redirector_reporting_class {
 		if ($Normal=='RegEx Parent Child') {
 			echo "disabled";
 		}
+		echo ">  <input type='submit' name='Normal' value='RegEx Summary'";
+		if ($Normal=='RegEx Summary') {
+			echo "disabled";
+		}
 		echo "></form><br>";
 
 		if ($Normal == 'RegEx') {
 			$this->show_page_regex();
 		} elseif ($Normal == 'RegEx Parent Child') {
 			$this->show_page_regex_parent();
+		} elseif ($Normal == 'RegEx Summary') {
+			$this->show_page_regex_summary();
 		}
 		else {
 			$this->show_page_url();
 		}
+	}
+
+	function show_page_regex_summary() {
+		$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
+
+		if ($_POST['Normal'] <> '') {
+			$Normal = $_POST['Normal'];
+			$url = $_POST['url'];
+			$order = $_POST['order'];
+			$direction = $_POST['direction'];
+		} elseif ($_GET['Normal'] <> '') {
+			$Normal = $_GET['Normal'];
+			$url=$_GET['url'];
+			$order = $_GET['order'];
+			$direction = $_GET['direction'];
+		}
+
+		global $wpdb;
+		$sql = "select distinct b.url, id from `{$wpdb->prefix}redirection_items` b where b.regex = 1 order by b.url";
+		echo "<form name='selection_form' method='post'>";
+		echo "<input type='hidden' name='Normal' value='{$Normal}' />";
+		echo "<table border='0'><tr><td>Select URL:</td><td><select name='url'>";
+		echo "<option value='--all--'>All URLs</option>";
+
+		$rows = $wpdb->get_results($sql);
+
+		foreach ($rows as $row) {
+			echo "<option value='";
+			echo $row->id;
+			if ($url == $row->id) {
+				echo "' SELECTED>";
+			} else {
+				echo "'>";
+			}
+			//echo "<option>";
+			echo $row->url;
+			echo "</option>";
+		}
+		echo "</select></td></tr>";
+		echo "<tr><td>Order By:</td>";
+		echo "<td><select name='order'>";
+			echo "<option>URL</option>";
+			echo "<option";
+			if ($order == 'Count') { 
+				echo " selected";
+			}
+			echo ">Count</option>";
+		echo "</select>";
+		echo "<select name='direction'>";
+			echo "<option value='asc'>Ascending</option>";
+			echo "<option value='desc'";
+			if ($direction == 'desc') { 
+				echo " selected";
+			}
+			echo ">Descending</option>";
+		echo "</select>";
+		echo "</td></tr>";
+
+		$this->end_of_form(0);
+
 	}
 
 	function show_page_regex_parent() {
@@ -208,7 +280,7 @@ class redirector_reporting_class {
 			echo "</option>";
 		}
 		echo "</select></td></tr>";
-		$this->end_of_form();
+		$this->end_of_form(1);
 
 	}
 
@@ -246,7 +318,7 @@ class redirector_reporting_class {
 			echo "</option>";
 		}
 		echo "</select></td></tr>";
-		$this->end_of_form();
+		$this->end_of_form(1);
 	}
 
 	function show_page_url() {
@@ -282,11 +354,11 @@ class redirector_reporting_class {
 			echo "</option>";
 		}
 		echo "</select></td></tr>";
-		$this->end_of_form();
+		$this->end_of_form(1);
 		
 	}
 
-	function end_of_form() {
+	function end_of_form($ShowHideForm) {
 		if ($_POST['Normal'] <> '') {
 			$Normal = $_POST['Normal'];
 			$url = $_POST['url'];
@@ -307,11 +379,13 @@ class redirector_reporting_class {
 
 		echo "<tr><td>Report Start Date:</td><td><input name='startdate' type='text' value='{$startdate}'></td></tr>";
 		echo "<tr><td>Report End Date:</td><td><input name='enddate' type='text' value='{$enddate}'></td></tr>";
-		echo "<tr><td colspan='2'><input type='checkbox' name='hide_rollup' value='true'";
-		if ($hide_rollup != '') {
-			echo " checked";
+		if ($ShowHideForm == 1) {
+			echo "<tr><td colspan='2'><input type='checkbox' name='hide_rollup' value='true'";
+			if ($hide_rollup != '') {
+				echo " checked";
+			}
+			echo "> Hide Rollup Values (when possible)</td></tr>";
 		}
-		echo "> Hide Rollup Values (when possible)</td></tr>";
 		echo "<tr><td colspan='2'><input type='submit' name='submit' value='Run Report'></td></tr>";
 		echo "</table></form>";
 
@@ -331,6 +405,8 @@ class redirector_reporting_class {
 					$this->draw_report_regex($url, $startdate, $enddate);
 				} elseif ($Normal == 'RegEx Parent Child') {
 					$this->draw_report_regex_parent($url, $startdate, $enddate);
+				} elseif ($Normal == 'RegEx Summary') {
+					$this->draw_report_regex_summary($url, $startdate, $enddate);
 				} else {
 					$this->draw_report_url($url, $startdate, $enddate);
 				}
@@ -338,6 +414,49 @@ class redirector_reporting_class {
 
 			}
 		}
+	}
+
+	function draw_report_regex_summary($url, $startdate, $enddate) {
+		global $wpdb;
+
+		$order = $_POST['order'];
+		$direction = $_POST['direction'];
+
+		if ($order == 'Count') {
+			$order = 'count(*)';
+		} elseif ($order == 'URL') {
+			$order = 'a.url';
+		} else {
+			$order = 'a.url';
+		}
+
+		if ($direction == 'ASC') {
+			$direction = 'ASC';
+		} else {
+			$direction = 'DESC';
+		}
+
+		$url_name = $this->return_url_from_id($url);
+		echo "Report for: $url_name";
+		
+		$startdate = date("Y-m-d", strtotime($startdate));
+		$enddate = date("Y-m-d", strtotime($enddate));
+
+		if ($url == "--all--") {
+			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
+
+			$columns = array("URL", "Count");
+		} else {
+			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
+
+			$columns = array("URL", "Count");
+		}
+
+		$rows = $wpdb->get_results("$sql");
+		//echo "<BR>$sql<BR>";
+		
+		$this->draw_report_generic ($rows, $columns, 'RegEx', $startdate, $enddate);
+
 	}
 
 	function draw_report_regex_parent ($url, $startdate, $enddate) {
