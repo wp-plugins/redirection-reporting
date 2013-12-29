@@ -3,7 +3,7 @@ Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
-Tested up to: 3.7.1
+Tested up to: 3.8
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -46,10 +46,19 @@ right near the "Redirection" link.
 
 == Screenshots ==
 
-1. A sample report
+1. Normal URL report
+2. The "RegEx Summary" report
+3. Referrer Details report
+4. Settings page
 
 
 == Changelog ==
+
+= 2.3 =
+* Added ability to view details of what URLs are referring people by clicking the 
+blue "I" icon when available.
+* Added settings to trim the URLs which are displayed in the details report and to 
+allow the user to specify if the report should open in a new tab or the same tab.
 
 = 2.2 =
 * Added in a RegEx Summary report which allows you to show the total number of hits 

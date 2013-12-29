@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 2.2
+Version: 2.3
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -16,7 +16,9 @@ class redirector_reporting_class {
 		$options = array (
 			'donate' => '',
 			'default_report' => 'RegEx',
-			'default_dates' => ''
+			'default_dates' => '',
+			'default_info_newtab' => "",
+			'default_max_url_length' => 100
 		);
     
 		// Add options
@@ -57,6 +59,24 @@ class redirector_reporting_class {
 		add_settings_section('redirection_reporting_main', __( 'Settings', '' ), array(&$this, 'setting_section'), 'redirection_reporting');
 		add_settings_field('default_report', __( 'Default Report:', '' ), array(&$this, 'setting_default_report'), 'redirection_reporting', 'redirection_reporting_main');
 		add_settings_field('default_date', __('Default Date:',  ''), array(&$this, 'setting_default_date'), 'redirection_reporting', 'redirection_reporting_main');
+		add_settings_field('default_max_url_length', __('Maximum URL Length: ', ''), array(&$this, 'setting_max_url_length'), 'redirection_reporting', 'redirection_reporting_main');
+		add_settings_field('default_info_newtab', __('Show Information Pages in New Window: ', ''), array(&$this, 'setting_info_newtab'), 'redirection_reporting', 'redirection_reporting_main');
+	}
+
+	function setting_max_url_length() {
+		$options = get_option('redirection_reporting');
+		echo "<input type='text' value='";
+		echo $options['default_max_url_length'];
+		echo "' name='redirection_reporting[default_max_url_length]'>";
+	}
+
+	function setting_info_newtab() {
+		$options = get_option('redirection_reporting');
+		echo "<input type='checkbox' value='true' name='redirection_reporting[default_info_newtab]'";
+		if ($options['default_info_newtab']=="true") {
+			echo " checked";
+		}
+		echo ">";
 	}
 
 	function setting_section() {
@@ -65,6 +85,7 @@ class redirector_reporting_class {
 
 	function setting_default_report() {
 		$options = get_option('redirection_reporting');
+
 		echo '<select id="default_report" name="redirection_reporting[default_report]">';
 		echo '<option value="Normal"';
 		if ($options['default_report'] == 'Normal') {
@@ -136,10 +157,30 @@ class redirector_reporting_class {
 	}
 
 	function settings_validate($input) {
+		$options = get_option('redirection_reporting');
+		if ($input['default_max_url_length'] == ''){
+			add_settings_error('default_max_url_length', 'error_max_url_length', 'The Maximum URL Length field can not be blank.', 'error');
+			$input['default_max_url_length'] = $options['default_max_url_length'];
+		}
+
+		if (!is_numeric($input['default_max_url_length'])) {
+			add_settings_error('default_max_url_length', 'error_max_url_length', 'The Maximum URL Length must be a number.', 'error');
+			$input['default_max_url_length'] = $options['default_max_url_length'];
+		}
+
+
+
 		return $input;
 	}
 
 	function show_tools_page() {
+
+
+		if ($_GET['mode']=='info') {
+			$this->draw_info_page($_GET['url'], $_GET['startdate'], $_GET['enddate']);
+			return;
+		}
+
 
 		$options = get_option('redirection_reporting');
 		$Normal = $options['default_report'];
@@ -560,7 +601,8 @@ class redirector_reporting_class {
 		$this->draw_report_generic ($rows, $columns);
 	}
 
-	function draw_report_generic ($rows, $columns, $targetreport='', $startdate='', $enddate='') {
+	function draw_report_generic ($rows, $columns, $targetreport='', $startdate='', $enddate='', $nativeurl=0) {
+		$options = get_option('redirection_reporting');
 		global $wpdb;
 		echo "<BR>";
 		echo "<table border='1' cellpadding='1' cellspacing='0'><tr>";
@@ -584,7 +626,11 @@ class redirector_reporting_class {
 			$i = 0;
 			foreach ($row as $thing) {
 				if ($i < $column_count) {
-					$this->generate_html_tags ($targetreport, $thing, $startdate, $enddate, $i, $htmlstart, $htmlend);
+					if ($thing != "") {
+						$this->generate_html_tags ($targetreport, $thing, $startdate, $enddate, $i, $htmlstart, $htmlend, $nativeurl, $options['default_info_newtab'], $options['default_max_url_length']);
+					} else {
+						$thing = "{No Referrer Specified In Logs}";
+					}
 					echo "<td>$htmlstart $thing $htmlend</td>";
 				}
 				$i+=1;
@@ -595,7 +641,7 @@ class redirector_reporting_class {
 		echo "</table>";
 	}
 
-	function generate_html_tags ($targetreport, $reporturl, $startdate, $enddate, $column, &$htmlstart, &$htmlend) {
+	function generate_html_tags ($targetreport, &$reporturl, $startdate, $enddate, $column, &$htmlstart, &$htmlend, $nativeurl, $info_newtab, $maxurllength) {
 
 		$htmlstart='';
 		$htmlend='';
@@ -608,8 +654,18 @@ class redirector_reporting_class {
 			return;
 		}
 
-		$htmlend = '</a>';
-		$htmlstart="<a href=\"tools.php?page=redirection_reporting&Normal=$targetreport&url=$reporturl&startdate=$startdate&enddate=$enddate\">";
+		if ($nativeurl==0) {
+			$htmlend = "</a>&nbsp;&nbsp;<a href=\"tools.php?page=redirection.php.reporting&mode=info&url=$reporturl&startdate=$startdate&enddate=$enddate\" ";
+			if ($info_newtab=="true") {
+				$htmlend=$htmlend."target=\"UrlInfo\" ";
+			}
+			$htmlend=$htmlend."><img src=\"../wp-content/plugins/redirection-reporting/info.png\" height=\"15\" width=\"15\" valign=\"center\"></a>";
+			$htmlstart="<a href=\"tools.php?page=redirection.php.reporting&Normal=$targetreport&url=$reporturl&startdate=$startdate&enddate=$enddate\">";
+		} else {
+			$htmlend = "</a>";
+			$htmlstart="<a href=\"$reporturl\">";
+			$reporturl = substr($reporturl, 0, $maxurllength);
+		}
 	}
 
 	function return_url_from_id ($id) {
@@ -621,6 +677,22 @@ class redirector_reporting_class {
 			$rows = $wpdb->get_results("select url, id from `{$wpdb->prefix}redirection_items` where id = $id");
 			return ($rows[0]->url);
 		}
+	}
+
+	function draw_info_page($url, $startdate, $enddate) {
+		global $wpdb;
+		echo "Details for: $url<br>";
+		echo "From $startdate To $enddate<br>";
+		$sql = "select referrer, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY referrer, DATE(created) ORDER BY referrer, DATE(created)";
+
+		$columns = array ("Referrer", "Date", "Hit Count");
+
+		$rows = $wpdb->get_results("$sql");
+		//echo $sql;
+		
+		$this->draw_report_generic ($rows, $columns, "targeturl", "", "", 1);
+
+
 	}
 
 
