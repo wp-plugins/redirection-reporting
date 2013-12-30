@@ -58,6 +58,7 @@ right near the "Redirection" link.
 * Added blue icon file
 * Fixed links on dates
 * Removed blue "I" icon from date column
+* Added ability to show date column on referrer details page or not based on setting
 
 = 2.3 =
 * Added ability to view details of what URLs are referring people by clicking the 
