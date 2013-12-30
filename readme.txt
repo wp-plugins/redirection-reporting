@@ -54,6 +54,11 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 2.4 =
+* Added blue icon file
+* Fixed links on dates
+* Removed blue "I" icon from date column
+
 = 2.3 =
 * Added ability to view details of what URLs are referring people by clicking the 
 blue "I" icon when available.
