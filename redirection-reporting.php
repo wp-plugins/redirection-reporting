@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 2.4
+Version: 2.5
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -210,6 +210,10 @@ class redirector_reporting_class {
 		if ($Normal=='normal') {
 			echo " disabled";
 		}
+		echo ">  <input type='submit' name='Normal' value='Normal Summary'";
+		if ($Normal=='Normal Summary') {
+			echo " disabled";
+		}
 		echo ">  <input type='submit' name='Normal' value='RegEx'";
 		if ($Normal=='RegEx') {
 			echo " disabled";
@@ -230,10 +234,71 @@ class redirector_reporting_class {
 			$this->show_page_regex_parent();
 		} elseif ($Normal == 'RegEx Summary') {
 			$this->show_page_regex_summary();
+		} elseif ($Normal == 'Normal Summary') {
+			$this->show_page_normal_summary();
 		}
 		else {
 			$this->show_page_url();
 		}
+	}
+
+	function show_page_normal_summary() {
+$options = get_option('redirection_reporting');
+		$Normal = $options['default_report'];
+
+
+		if ($_POST['Normal'] <> '') {
+			$Normal = $_POST['Normal'];
+			$url= $_POST['url'];
+			$order = $_POST['order'];
+			$direction = $_POST['direction'];
+		} elseif ($_GET['Normal'] <> '') {
+			$Normal = $_GET['Normal'];
+			$url=$_GET['url'];
+			$order = $_GET['order'];
+			$direction = $_GET['direction'];
+		}
+
+		global $wpdb;
+		echo "<form name='selection_form' method='post'>";
+		echo "<input type='hidden' name='Normal' value='{$Normal}' />";
+		echo "<table border='0'><tr><td>Select URL:</td><td><select name='url'>";
+		echo "<option value='--all--'>All URLs</option>";
+		$rows = $wpdb->get_results("select url, id from `{$wpdb->prefix}redirection_items` order by url");
+		foreach ($rows as $row) {
+			echo "<option value='";
+			echo $row->id;
+			if ($url == $row->id) {
+				echo "' SELECTED>";
+			} else {
+				echo "'>";
+			}
+			//echo "<option>";
+			echo $row->url;
+			echo "</option>";
+		}
+		echo "</select></td></tr>";
+		echo "<tr><td>Order By:</td>";
+		echo "<td><select name='order'>";
+			echo "<option>URL</option>";
+			echo "<option";
+			if ($order == 'Count') { 
+				echo " selected";
+			}
+			echo ">Count</option>";
+		echo "</select>";
+		echo "<select name='direction'>";
+			echo "<option value='asc'>Ascending</option>";
+			echo "<option value='desc'";
+			if ($direction == 'desc') { 
+				echo " selected";
+			}
+			echo ">Descending</option>";
+		echo "</select>";
+		echo "</td></tr>";
+
+		$this->end_of_form(0);
+
 	}
 
 	function show_page_regex_summary() {
@@ -459,6 +524,8 @@ class redirector_reporting_class {
 					$this->draw_report_regex_parent($url, $startdate, $enddate);
 				} elseif ($Normal == 'RegEx Summary') {
 					$this->draw_report_regex_summary($url, $startdate, $enddate);
+				} elseif ($Normal == 'Normal Summary') {
+					$this->draw_report_normal_summary($url, $startdate, $enddate);
 				} else {
 					$this->draw_report_url($url, $startdate, $enddate);
 				}
@@ -466,6 +533,49 @@ class redirector_reporting_class {
 
 			}
 		}
+	}
+
+	function draw_report_normal_summary($url, $startdate, $enddate) {
+		global $wpdb;
+
+		$order = $_POST['order'];
+		$direction = $_POST['direction'];
+
+		if ($order == 'Count') {
+			$order = 'count(*)';
+		} elseif ($order == 'URL') {
+			$order = 'a.url';
+		} else {
+			$order = 'a.url';
+		}
+
+		if ($direction == 'ASC') {
+			$direction = 'ASC';
+		} else {
+			$direction = 'DESC';
+		}
+
+		$url_name = $this->return_url_from_id($url);
+		echo "Report for: $url_name";
+		
+		$startdate = date("Y-m-d", strtotime($startdate));
+		$enddate = date("Y-m-d", strtotime($enddate));
+
+		if ($url == "--all--") {
+			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
+
+			$columns = array("URL", "Count");
+		} else {
+			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
+
+			$columns = array("URL", "Count");
+		}
+
+		$rows = $wpdb->get_results("$sql");
+		//echo "<BR>$sql<BR>";
+		
+		$this->draw_report_generic ($rows, $columns, 'RegEx', $startdate, $enddate);
+
 	}
 
 	function draw_report_regex_summary($url, $startdate, $enddate) {
