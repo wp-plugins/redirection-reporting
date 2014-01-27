@@ -54,6 +54,10 @@ right near the "Redirection" link.
 
 == Changelog ==
 
+= 2.6.1 =
+* Added "Normal Summary" report to settings options
+* Fixed "Normal Report" to settings options so that it is selected correctly on tools page.
+
 = 2.6 =
 * Code cleanup, moving code into multiple classes and multiple files.
 

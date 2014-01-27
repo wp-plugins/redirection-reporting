@@ -56,11 +56,16 @@ class redirector_reporting_class_settings {
 		$options = get_option('redirection_reporting');
 
 		echo '<select id="default_report" name="redirection_reporting[default_report]">';
-		echo '<option value="Normal"';
-		if ($options['default_report'] == 'Normal') {
+		echo '<option value="normal"';
+		if ($options['default_report'] == 'normal') {
 			echo " selected";
 		}
-		echo '>Page Report</option>';
+		echo '>Normal Report</option>';
+		echo '<option value="Normal Summary"';
+		if ($options['default_report'] == 'Normal Summary') {
+			echo " selected";
+		}
+		echo '>Normal Summary Report</option>';
 		echo '<option value="RegEx"';
 		if ($options['default_report'] == 'RegEx') {
 			echo " selected";
