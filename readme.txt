@@ -3,7 +3,7 @@ Contributors: mrdenny
 Donate Link: http://mrdenny.com/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
-Tested up to: 3.8
+Tested up to: 3.8.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -53,6 +53,9 @@ right near the "Redirection" link.
 
 
 == Changelog ==
+
+= 2.5 =
+* Added Normal Summary report to match the RegEx Summary report.
 
 = 2.4 =
 * Added blue icon file
