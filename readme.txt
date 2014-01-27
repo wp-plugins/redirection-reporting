@@ -1,6 +1,6 @@
 === Redirection Reporting ===
 Contributors: mrdenny
-Donate Link: http://mrdenny.com/go/RedirectionReporting
+Donate Link: http://dcac.co/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
 Tested up to: 3.8.1
@@ -53,6 +53,9 @@ right near the "Redirection" link.
 
 
 == Changelog ==
+
+= 2.6 =
+* Code cleanup, moving code into multiple classes and multiple files.
 
 = 2.5 =
 * Added Normal Summary report to match the RegEx Summary report.
