@@ -53,6 +53,12 @@ workload the data from the log table can be archived.  This will not reduce the 
 of data which is reported on as reports are run against the archive table and the 
 normal table at the same time.
 
+= After upgrading to v3.0 the reports don't work. =
+
+On some systems the additional database objects which are needed are not being created.
+In order to fix this, deactivate the plugin and reactivate it, or simply go to the settings 
+page and click the "Save Settings" button.  We're working on making that a smoother upgrade.
+
 == Screenshots ==
 
 1. Normal URL report
@@ -62,6 +68,9 @@ normal table at the same time.
 
 
 == Changelog ==
+
+= 3.0.1 =
+* Attempting to fix upgrade code to create database objects as needed.
 
 = 3.0 =
 * Added feature to archive off old redirection log data to another table within the database.

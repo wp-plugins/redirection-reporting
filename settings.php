@@ -175,6 +175,7 @@ within MySQL.  Please keep this in mind if you turn on the archive process.  Dep
 			$archive->schedule_archiving();
 		} else {
 			$archive = new redirector_reporting_class_archive();
+			$archive->create_db_objects();
 			$archive->unscheduled_archiving();
 			#$archive->put_archive_back();
 			$input['archive_enabled'] = 'false';
