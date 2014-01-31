@@ -232,6 +232,9 @@ $options = get_option('redirection_reporting');
 		}
 
 		global $wpdb;
+		$sql = "select count(*) ct from {$wpdb->prefix}redirection_items where regex = 1";
+		$regex_count = $wpdb->get_var( $sql );
+
 		$sql = "select distinct a.url from {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id where b.regex = 1 order by a.url";
 		echo "<form name='selection_form' method='post'>";
 		echo "<input type='hidden' name='Normal' value='{$Normal}' />";
@@ -240,16 +243,18 @@ $options = get_option('redirection_reporting');
 
 		$rows = $wpdb->get_results($sql);
 
-		foreach ($rows as $row) {
-			echo "<option ";
-			if ($url == $row->url) {
-				echo " SELECTED>";
-			} else {
-				echo ">";
+		if ($regex_count != 0) {
+			foreach ($rows as $row) {
+				echo "<option ";
+				if ($url == $row->url) {
+					echo " SELECTED>";
+				} else {
+					echo ">";
+				}
+				//echo "<option>";
+				echo $row->url;
+				echo "</option>";
 			}
-			//echo "<option>";
-			echo $row->url;
-			echo "</option>";
 		}
 		echo "</select></td></tr>";
 		$this->end_of_form(1);

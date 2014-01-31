@@ -32,7 +32,7 @@ e.g.
 
 = What does this plugin do? =
 
-This plugin simply reports on the redirection logs with day by day reporting.
+This plugin simply reports on the redirection logs with day by day reporting.  It will also archive off data from the redirection_log table to redirection_log_archive (if enabled) to help keep the table that the redirection plugin writes to small.
 
 = What date format should I be using? =
 
@@ -44,6 +44,15 @@ way that MySQL wants to see it.
 The "Redirection Reporting" link can be found under the tools menu, probably
 right near the "Redirection" link.
 
+= What is the archive feature for? =
+
+When there are large amounts of data in the Redirection plugin's log table the pages 
+which show the lists of available regex URLs can be slow to load as these come from 
+the log table.  In order to make this load faster, on sites which have a very heavy 
+workload the data from the log table can be archived.  This will not reduce the amount 
+of data which is reported on as reports are run against the archive table and the 
+normal table at the same time.
+
 == Screenshots ==
 
 1. Normal URL report
@@ -53,6 +62,37 @@ right near the "Redirection" link.
 
 
 == Changelog ==
+
+= 3.0 =
+* Added feature to archive off old redirection log data to another table within the database.
+* Improved performace of loading RegEd selection lists (thanks for the archiving feature above).
+* Major code cleanup, made the code much more managable for updating.
+
+= 2.6.2 =
+* Fixed Settings link from plugin page
+* Added warning if Redirection plugin isn't installed or enabled.
+
+= 2.6.1 =
+* Added "Normal Summary" report to settings options
+* Fixed "Normal Report" to settings options so that it is selected correctly on tools page.
+
+= 2.6 =
+* Code cleanup, moving code into multiple classes and multiple files.
+
+= 2.5 =
+* Added Normal Summary report to match the RegEx Summary report.
+
+= 2.4 =
+* Added blue icon file
+* Fixed links on dates
+* Removed blue "I" icon from date column
+* Added ability to show date column on referrer details page or not based on setting
+
+= 2.3 =
+* Added ability to view details of what URLs are referring people by clicking the 
+blue "I" icon when available.
+* Added settings to trim the URLs which are displayed in the details report and to 
+allow the user to specify if the report should open in a new tab or the same tab.
 
 = 2.6.1 =
 * Added "Normal Summary" report to settings options

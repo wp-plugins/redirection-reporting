@@ -28,11 +28,11 @@ class redirector_reporting_class_reports {
 		$enddate = date("Y-m-d", strtotime($enddate));
 
 		if ($url == "--all--") {
-			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
+			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
 
 			$columns = array("URL", "Count");
 		} else {
-			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
+			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
 
 			$columns = array("URL", "Count");
 		}
@@ -71,11 +71,11 @@ class redirector_reporting_class_reports {
 		$enddate = date("Y-m-d", strtotime($enddate));
 
 		if ($url == "--all--") {
-			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
+			$sql = "select a.url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url ORDER BY $order $direction";
 
 			$columns = array("URL", "Count");
 		} else {
-			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
+			$sql = "select url, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url  ORDER BY $order $direction";
 
 			$columns = array("URL", "Count");
 		}
@@ -97,7 +97,7 @@ class redirector_reporting_class_reports {
 		$enddate = date("Y-m-d", strtotime($enddate));
 
 		if ($url == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
 
 			if ($_POST['hide_rollup'] == '') {
 				$sql = $sql." with rollup";
@@ -107,7 +107,7 @@ class redirector_reporting_class_reports {
 
 			$columns = array("URL", "Date", "Count");
 		} else {
-			$sql = "select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created)";
+			$sql = "select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view WHERE  redirection_id = $url AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created)";
 
 			if ($_POST['hide_rollup'] == '') {
 				$sql = $sql." with rollup";
@@ -135,7 +135,7 @@ class redirector_reporting_class_reports {
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($url == "--all--") {
-			$sql = "select url, dt, ct from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
+			$sql = "select url, dt, ct from (select a.url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view a join `{$wpdb->prefix}redirection_items` b ON a.redirection_id = b.id JOIN (SELECT @curRow := 0) r WHERE regex = 1 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY a.url, DATE(created) ";
 
 			if ($_POST['hide_rollup'] == '') {
 				$sql = $sql." with rollup";
@@ -145,7 +145,7 @@ class redirector_reporting_class_reports {
 
 			$columns = array("URL", "Date", "Count");
 		} else {
-			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs  WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct', (@curRow := @curRow + 1)%2 AS row_number FROM {$wpdb->prefix}redirection_logs_view  WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
 
 			$columns = array("Date", "Count");
 		}
@@ -165,7 +165,7 @@ class redirector_reporting_class_reports {
 		$startdate = date("Y-m-d", strtotime($startdate));
 		$enddate = date("Y-m-d", strtotime($enddate));
 		if ($id == "--all--") {
-			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) ";
+			$sql = "select url, dt, ct, (@curRow := @curRow +1)%2 as row_number from (select url, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view WHERE redirection_id <> 0 AND created BETWEEN '$startdate' AND '$enddate' GROUP BY url, DATE(created) ";
 
 			if ($_POST['hide_rollup'] == '') {
 				$sql = $sql." with rollup";
@@ -176,7 +176,7 @@ class redirector_reporting_class_reports {
 			$columns = array ("URL", "Date", "Hit Count");
 
 		} else {
-			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs JOIN    (SELECT @curRow := 0) r WHERE redirection_id = $id AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
+			$sql = "select DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view JOIN    (SELECT @curRow := 0) r WHERE redirection_id = $id AND created BETWEEN '$startdate' AND '$enddate' GROUP BY DATE(created) ORDER BY DATE(created)";
 
 
 			$columns = array ("Date", "Hit Count");
@@ -296,11 +296,11 @@ class redirector_reporting_class_reports {
 		echo "From $startdate To $enddate<br>";
 
 		if ($default_info_show_date=="true") {
-			$sql = "select referrer, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY referrer, DATE(created) ORDER BY referrer, DATE(created)";
+			$sql = "select referrer, DATE(created) AS 'dt', count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY referrer, DATE(created) ORDER BY referrer, DATE(created)";
 
 			$columns = array ("Referrer", "Date", "Hit Count");
 		} else {
-			$sql = "select referrer, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY referrer ORDER BY referrer";
+			$sql = "select referrer, count(*) AS 'ct' FROM {$wpdb->prefix}redirection_logs_view WHERE url = '$url' AND created BETWEEN '$startdate' AND '$enddate' GROUP BY referrer ORDER BY referrer";
 
 			$columns = array ("Referrer", "Hit Count");
 		}
