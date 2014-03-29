@@ -69,6 +69,9 @@ page and click the "Save Settings" button.  We're working on making that a smoot
 
 == Changelog ==
 
+= 3.0.2 =
+* Fixed bug which prevented some users from logging in.
+
 = 3.0.1 =
 * Attempting to fix upgrade code to create database objects as needed.
 

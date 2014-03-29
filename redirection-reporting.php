@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Redirection Reporting
-Version: 3.0.1
+Version: 3.0.2
 Plugin URI: http://dcac.co/go/RedirectionReporting
 Description: Allows for more details reporting for the "Redirection" plugin by John Godley.  This plugin will not do anything for you without using the Redirection plugin to handle your 301 redirections.  This plugin was built to fix a gap in the reporting which the Redirection plugin has.
 Author: Denny Cherry
@@ -85,11 +85,6 @@ class redirector_reporting_class {
 	}
 
 	function init_settings(){
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __('You are not allowed to access this part of the site') );
-		}
-
 		$settings = new redirector_reporting_class_settings();
 		$settings->register_settings();
 

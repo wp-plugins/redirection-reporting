@@ -44,6 +44,12 @@ within MySQL.  Please keep this in mind if you turn on the archive process.  Dep
 	}
 
 	function show_settings_page() {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( __('You are not allowed to access this part of the site') );
+		}
+
+
 		echo '<div class="wrap">';
 		echo '<H2>Redirection Reporting Settings</h2>';
 		echo '<form action="options.php" method="post">';
