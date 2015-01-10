@@ -3,7 +3,7 @@ Contributors: mrdenny
 Donate Link: http://dcac.co/go/RedirectionReporting
 Tags: reporting, redirection
 Requires at least: 3.0.1
-Tested up to: 3.9
+Tested up to: 4.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -68,6 +68,9 @@ page and click the "Save Settings" button.  We're working on making that a smoot
 
 
 == Changelog ==
+
+= 3.0.3 =
+* Tested for version 4.1
 
 = 3.0.2 =
 * Fixed bug which prevented some users from logging in.
