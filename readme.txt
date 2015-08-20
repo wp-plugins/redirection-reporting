@@ -69,6 +69,9 @@ page and click the "Save Settings" button.  We're working on making that a smoot
 
 == Changelog ==
 
+= 3.0.4 =
+* Tested for version 4.3
+
 = 3.0.3 =
 * Tested for version 4.1
 
